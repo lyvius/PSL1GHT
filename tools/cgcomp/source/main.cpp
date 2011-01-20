@@ -33,7 +33,7 @@ struct _options
 	true,
 	false
 };
-
+ 
 #define CG_SOURCE				4112
 #define CG_COMPILED_PROGRAM		4106
 #define CG_PROFILE_VP30			6148
@@ -93,6 +93,8 @@ void usage()
 	printf("cgcomp [options] input output\n");
 	printf("\t-f Input is fragment program\n");
 	printf("\t-v Input is vertex program\n");
+	printf("\t-e Entry function name for program\n");
+	printf("\t-a Assemble only, no compile\n");
 }
 
 void readoptions(struct _options *options,int argc,char *argv[])
@@ -105,6 +107,7 @@ void readoptions(struct _options *options,int argc,char *argv[])
 				case 'f': options->prog_type = PROG_TYPE_FP; break;
 				case 'v': options->prog_type = PROG_TYPE_VP; break;
 				case 'e': options->entry = argv[++i]; break;
+				case 'a': options->gen_asm = true; break;
 			}
 		} else
 			break;
@@ -115,21 +118,51 @@ void readoptions(struct _options *options,int argc,char *argv[])
 	options->dst_file = argv[i+1];
 }
 
+char* readFile(const char *filename)
+{
+	char *prg = NULL;
+	unsigned int len = 0;
+	FILE *f = fopen(filename,"rb");
+
+	if(f==NULL) {
+		fprintf(stderr,"Unable to open input file %s\n",filename);
+		return NULL;
+	}
+
+	fseek(f,0,SEEK_END);
+	len = ftell(f);
+	fseek(f,0,SEEK_SET);
+
+	prg = (char*)malloc(len + 1);
+	if(fread(prg,1,len,f)!=len) {
+		fprintf(stderr,"Input file read error\n");
+		fclose(f);
+		free(prg);
+		return NULL;
+	}
+
+	fclose(f);
+	return prg;
+}
+
 int compileVP()
 {
 	char *prg;
-	void *context;
-	void *program;
 
-	context = cgCreateContext();
-	program = cgCreateProgramFromFile(context,CG_SOURCE,Options.src_file,CG_PROFILE_VP40,Options.entry,NULL);
-	if(program==NULL) {
-		const char *error = cgGetLastListing(context);
-		fprintf(stderr,"%s\n",error);
-		return EXIT_FAILURE;
+	if(Options.gen_asm==true) {
+		prg = readFile(Options.src_file);
+	} else {
+		void *context = cgCreateContext();
+		void *program = cgCreateProgramFromFile(context,CG_SOURCE,Options.src_file,CG_PROFILE_VP40,Options.entry,NULL);
+		if(program==NULL) {
+			const char *error = cgGetLastListing(context);
+			fprintf(stderr,"%s\n",error);
+			return EXIT_FAILURE;
+		}
+
+		prg = (char*)cgGetProgramString(program,CG_COMPILED_PROGRAM);
 	}
 
-	prg = (char*)cgGetProgramString(program,CG_COMPILED_PROGRAM);
 	if(prg) {
 		CVPParser parser;
 		CCompiler compiler;
@@ -252,18 +285,21 @@ int compileVP()
 int compileFP()
 {
 	char *prg;
-	void *context;
-	void *program;
 
-	context = cgCreateContext();
-	program = cgCreateProgramFromFile(context,CG_SOURCE,Options.src_file,CG_PROFILE_FP40,Options.entry,NULL);
-	if(program==NULL) {
-		const char *error = cgGetLastListing(context);
-		fprintf(stderr,"%s\n",error);
-		return EXIT_FAILURE;
+	if(Options.gen_asm==true) {
+		prg = readFile(Options.src_file);
+	} else {
+		void *context = cgCreateContext();
+		void *program = cgCreateProgramFromFile(context,CG_SOURCE,Options.src_file,CG_PROFILE_FP40,Options.entry,NULL);
+		if(program==NULL) {
+			const char *error = cgGetLastListing(context);
+			fprintf(stderr,"%s\n",error);
+			return EXIT_FAILURE;
+		}
+
+		prg = (char*)cgGetProgramString(program,CG_COMPILED_PROGRAM);
 	}
 
-	prg = (char*)cgGetProgramString(program,CG_COMPILED_PROGRAM);
 	if(prg) {
 		CFPParser parser;
 		CCompilerFP compiler;
