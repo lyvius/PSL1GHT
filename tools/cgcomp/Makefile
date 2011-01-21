@@ -33,8 +33,7 @@ ifneq (,$(findstring MINGW,$(UNAME)))
 endif
 
 ifneq (,$(findstring CYGWIN,$(UNAME)))
-	CFLAGS		+= -mno-cygwin
-	LDFLAGS		+= -mno-cygwin -s
+	LDFLAGS		+= -s
 	EXEEXT		:= .exe
 	OS	:=	win32
 	EXTRAINSTALL := extlib/cg.dll 

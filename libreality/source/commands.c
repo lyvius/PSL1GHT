@@ -393,3 +393,22 @@ void realityInlineTransfer(gcmContextData *context,const u32 dstOffset,const voi
 		commandBufferPut(context,0);
 }
 
+
+void realityInstallFragmentProgram_old(gcmContextData *context, realityFragmentProgram_old *prog, uint32_t *addr) {
+	// We don't actually need context, but if we leave it out people will forget.
+	int i;
+	for( i = 0; i < prog->size; ++i ) {
+		addr[i] = (((prog->data[i] >> 16 ) & 0xffff) << 0) |
+			    (((prog->data[i] >> 0 ) & 0xffff) << 16);
+	}
+	assert(realityAddressToOffset(addr, &prog->offset) == 0);
+}
+
+void realityLoadFragmentProgram_old(gcmContextData *context, realityFragmentProgram_old *prog) {
+	COMMAND_LENGTH(context, 4);
+	assert(prog->offset != 0);
+	commandBufferPutCmd1(context, NV30_3D_FP_ACTIVE_PROGRAM,
+				prog->offset | NV30_3D_FP_ACTIVE_PROGRAM_DMA0);
+	commandBufferPutCmd1(context, NV30_3D_FP_CONTROL, 
+ 				prog->num_regs << NV40_3D_FP_CONTROL_TEMP_COUNT__SHIFT);
+}

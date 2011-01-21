@@ -111,12 +111,22 @@ typedef struct {
 	uint32_t data[];
 } realityVertexProgram_old; 
 
+typedef struct {
+	uint32_t offset;
+	uint32_t size;
+	uint32_t num_regs;
+	uint32_t data[];
+} realityFragmentProgram_old; 
+
 void realityLoadVertexProgram(gcmContextData *context, realityVertexProgram *prog);
 void realityLoadVertexProgram_old(gcmContextData *context, realityVertexProgram_old *prog);
 void realitySetVertexProgramConstant4f(gcmContextData *context, int constant, float values[4]);
 void realitySetVertexProgramConstant4fBlock(gcmContextData *context, realityVertexProgram *prog, int index, int num4fConstants, float *values);
 void realityLoadFragmentProgram(gcmContextData *context, realityFragmentProgram *prog,u32 offset,u32 location);
 void realitySetFragmentProgramParameter(gcmContextData *context,realityFragmentProgram *program,s32 index,const f32 *value,u32 offset);
+
+void realityInstallFragmentProgram_old(gcmContextData *context, realityFragmentProgram_old *prog, uint32_t *addr);
+void realityLoadFragmentProgram_old(gcmContextData *context, realityFragmentProgram_old *prog);
 
 typedef struct {
 	uint32_t offset;
