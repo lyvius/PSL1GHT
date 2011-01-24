@@ -1,3 +1,10 @@
+CGINCLUDE := /usr/include/Cg/cg.h
+
+ifeq ($(wildcard $(CGINCLUDE)),)
+$(error "Cannot compile cgcomp without nvidia's cg-framework")
+endif
+
+
 #---------------------------------------------------------------------------------
 # TARGET is the name of the output, if this ends with _mb generates a multiboot image
 # BUILD is the directory where object files & intermediate files will be placed
@@ -8,7 +15,7 @@ TARGET		:=	cgcomp
 BUILD		:=	build
 SOURCES		:=	source
 INCLUDE		:=	include
-LIBDIRS		:=	
+LIBDIRS		:=
 
 #---------------------------------------------------------------------------------
 # options for code generation
@@ -29,14 +36,14 @@ ifneq (,$(findstring MINGW,$(UNAME)))
 	CFLAGS		+= -mno-cygwin
 	LDFLAGS		+= -mno-cygwin -s
 	OS	:=	win32
-	EXTRAINSTALL := extlib/cg.dll 
+	EXTRAINSTALL := extlib/cg.dll
 endif
 
 ifneq (,$(findstring CYGWIN,$(UNAME)))
 	LDFLAGS		+= -s
 	EXEEXT		:= .exe
 	OS	:=	win32
-	EXTRAINSTALL := extlib/cg.dll 
+	EXTRAINSTALL := extlib/cg.dll
 endif
 
 ifneq (,$(findstring Darwin,$(UNAME)))
@@ -52,7 +59,7 @@ ifneq (,$(findstring Linux,$(UNAME)))
 	OS := Linux
 	EXTRAINSTALL := extlib/libCg.so
 endif
-	
+
 
 LIBS		:=
 
@@ -114,7 +121,7 @@ clean:
 install:
 	@[ -d $(PSL1GHT)/host/bin ] || mkdir -p $(PSL1GHT)/host/bin
 	@cp -frv $(OUTPUT) $(EXTRAINSTALL) $(PSL1GHT)/host/bin
-		
+
 #---------------------------------------------------------------------------------
 else
 
